@@ -423,6 +423,10 @@ def read_data_points(path, label):
     for item in file_list:
         if item == '.' or item == '..':
             continue
+        if item == label + '.txt':
+            # do not load the label data again
+            continue
+
         data = read_data(path + '/' + item, False)
         if data == []:
             print item + ' skipped'
@@ -472,8 +476,8 @@ def demo_run():
 
 #remove_noise('captcha/captcha')
 #gather_data_points('captcha/class')
-label = 'a'
-data_points = read_data_points('data_points', 'a')
+label = 'b'
+data_points = read_data_points('data_points', label)
 print 'number of data points read:'
 print len(data_points)
 
