@@ -292,11 +292,12 @@ def is_stop_condition(target, total_der_w):
 
     return True
 
-def initial_run(data_points):
+def initial_run(data_points, true_label_num):
     # start point of w list on the initial run is set to 0
     # step size of gradient decent is set to 0.002
     w_list = [0] * len(data_points[0])
-    step = 0.0000006
+    step = 0.000005
+    #step = 0.00005
 
     print 'performing Gradient Decent Algorithms ... '
     count = 0
@@ -415,6 +416,7 @@ def gather_data_points(path):
 def read_data_points(path, label):
     print 'reading the data points ...'
     data_points = read_data(path + '/' + label + '.txt', True)
+    true_label_num = len(data_points)
     #data_points.extend(read_data(path + '/b.txt', False))
     #data_points.extend(read_data(path + '/c.txt', False))
     #data_points.extend(read_data(path + '/d.txt', False))
@@ -433,9 +435,9 @@ def read_data_points(path, label):
             continue
         data_points.extend(data)
 
-    return data_points
+    return data_points, true_label_num
 
-def save_w_list(w_list, acc, true_positives, label):
+def save_w_list(w_list, acc, true_positives, true_label_num, label):
     if not os.path.exists('w_list'):
         os.makedirs('w_list')
     file_name = 'w_list/w_list_' + label + '.txt'
@@ -444,7 +446,7 @@ def save_w_list(w_list, acc, true_positives, label):
     file_name = 'w_list/accuracy_' + label + '.txt'
     output_file = open(file_name, 'w')
     print>>output_file, acc
-    print>>output_file, true_positives
+    print>>output_file, str(true_positives) + ' / ' + str(true_label_num)
     output_file.close()
 
 def load_w_list(label):
@@ -476,17 +478,19 @@ def demo_run():
 
 #remove_noise('captcha/captcha')
 #gather_data_points('captcha/class')
-label = 'b'
-data_points = read_data_points('data_points', label)
+label = 'd'
+data_points, true_label_num = read_data_points('data_points', label)
 print 'number of data points read:'
 print len(data_points)
+print 'number of true labeled data:'
+print true_label_num
 
 # read all data from the file
 mode = input('Choose the task: \n(1) initial run using all data set \n(2) validation runs with randomly selected training data \n(3) demo runs to classfy the character images at given location \n')
 
 if mode == 1:
-    w_list, acc, true_positives = initial_run(data_points)
-    save_w_list(w_list, acc, true_positives, label)
+    w_list, acc, true_positives = initial_run(data_points, true_label_num)
+    save_w_list(w_list, acc, true_positives, true_label_num, label)
 elif mode == 2:
     w_list = load_w_list(label)
     validation_run(data_points)
