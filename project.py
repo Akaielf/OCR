@@ -75,19 +75,19 @@ def cut_into_chars(path, file_name, index, im, start, end):
 
 def remove_noise(folder_name):
     new_folder = 'de-noised'
-    chars_path = new_folder + '/chars'
+    #chars_path = new_folder + '/chars'
 
     cwd = os.getcwd()
-    print cwd
 
     #file_list = os.listdir(folder_name)[0:10]
     file_list = os.listdir(folder_name)
-    print file_list
+    #print file_list
     os.chdir(folder_name)
     if not os.path.exists(new_folder):
         os.makedirs(new_folder)
-    if not os.path.exists(chars_path):
-        os.makedirs(chars_path)
+    # for demo
+    #if not os.path.exists(chars_path):
+        #os.makedirs(chars_path)
 
     for file_name in file_list:
         if '.png' not in file_name:
@@ -100,8 +100,6 @@ def remove_noise(folder_name):
         print im.size[0]
         print im.size[1]
         print im.mode"""
-        r = im.getpixel((0,0))
-        print r
 
         for i in range(im.size[1]):
             for j in range(im.size[0]):
@@ -116,6 +114,8 @@ def remove_noise(folder_name):
         im.save(new_folder + '/' + file_name.replace('.png', '-converted.png'), 'PNG')
         remove_twist(im)
         im.save(new_folder + '/' + file_name, 'PNG')
+
+        # perform images chopping here
         histogram = []
         for i in range(im.size[0]):
             sum_num = 0
@@ -123,8 +123,11 @@ def remove_noise(folder_name):
                 if im.getpixel((i, j)) < 200:
                     sum_num += 1
             histogram.append(sum_num)
-        print histogram
+        #print histogram
 
+        chars_path = new_folder + '/' + file_name.replace('.png', '')
+        if not os.path.exists(chars_path):
+            os.makedirs(chars_path)
         start = None
         index = 1
         for i in range(len(histogram)):
@@ -149,10 +152,8 @@ def extract_features(folder_name, data_points):
     icon_dir = 'thum'
 
     cwd = os.getcwd()
-    print cwd
 
     file_list = os.listdir(folder_name)
-    print file_list
     os.chdir(folder_name)
     if not os.path.exists(icon_dir):
         os.makedirs(icon_dir)
@@ -168,11 +169,7 @@ def extract_features(folder_name, data_points):
             continue
         im = Image.open(file_name).resize(re_size)
         im.load()
-        print im.format
-        print im.size
-        print im.mode
         r = im.getpixel((0,0))
-        print r
 
         # calculate horizon sum
         for i in range(re_size_width):
@@ -196,8 +193,8 @@ def extract_features(folder_name, data_points):
         else:
             data_point.append(0)"""
 
-        print data_point
-        print len(data_point)
+        #print data_point
+        #print len(data_point)
         data_points.append(data_point)
 
     os.chdir(cwd)   
@@ -239,6 +236,8 @@ def calculate_p_y_1(data_point, w_list):
         else:
             score += w_list[i] * data_point[i - 1]
 
+    #print 'score = '
+    #print score
     p = float(1) / (1 + math.exp(-1 * score))
 
     return p
@@ -423,6 +422,17 @@ def gather_data_points(path):
             os.makedirs('data_points') 
         output_data(data_points, 'data_points/' + folder_name + '.txt')
 
+def gather_data_points_for_demo(path, items):
+    folder_list = os.listdir(path)
+    for folder_name in folder_list:
+        if folder_name == '.' or folder_name == '..':
+            continue
+        data_points = []
+        extract_features(path + '/' + folder_name, data_points)
+        if not os.path.exists('data_points'):
+            os.makedirs('data_points') 
+        output_data(data_points, 'data_points/' + folder_name + '.txt')
+
 def read_data_points(path, label):
     print 'reading the data points ...'
     data_points = read_data(path + '/' + label + '.txt', True)
@@ -479,10 +489,58 @@ def load_w_list(label):
 
     return w_list
 
+def get_all_w_list(path):
+    label_list = []
+    w_lists = []
+    w_list_files = []
+
+    file_list = os.listdir('w_list/')
+    for item in file_list:
+        if item == '.' or item == '..':
+            continue
+        if 'w_list' not in item:
+            continue
+        w_list_files.append(item)
+
+    for w_list_file in w_list_files:
+        label = w_list_file.replace('w_list_', '').replace('.txt', '')
+        label_list.append(label)
+        w_list = load_w_list(label)
+        w_lists.append(w_list)
+        
+    return label_list, w_lists
+
+def predict_char(x, label_list, w_lists):
+    prob_list = []
+
+    for w_list in w_lists:
+        prob = calculate_p_y_1(x, w_list)
+        prob_list.append(prob)
+
+    index = prob_list.index(max(prob_list))
+    return label_list[index]
+
 def demo_run():
-
+    label_list, w_lists = get_all_w_list('w_list')
     remove_noise('demo')
+    file_list = os.listdir('demo')
 
+    for file_name in file_list:
+        if '.png' not in file_name:
+            continue
+        folder_name = file_name.replace('.png', '')
+        data_points = []
+        extract_features('demo/de-noised/' + folder_name, data_points)
+        print 'gathered data points of '
+        print file_name
+        #print data_points
+
+        for i in range(len(data_points)):
+            prediction = predict_char(data_points[i], label_list, w_lists)
+            print 'the prediction for character ' + str(i + 1) + ':'
+            print prediction
+        
+        time.sleep(2)
     return
 
 # mapping function probility -> 1 / ( 1 - e^-score(x))
