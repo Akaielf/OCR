@@ -483,7 +483,7 @@ def demo_run():
 
 #remove_noise('captcha/captcha')
 #gather_data_points('captcha/class')
-label = 's'
+label = '6'
 data_points, true_label_num = read_data_points('data_points', label)
 print 'number of data points read:'
 print len(data_points)
