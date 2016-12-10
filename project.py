@@ -131,6 +131,7 @@ def remove_noise(folder_name):
         start = None
         index = 1
         for i in range(len(histogram)):
+            # modified from 2 to 3 for demo
             if histogram[i] < 2:
                 if start != None:
                     if start > i - 5:
@@ -535,12 +536,20 @@ def demo_run():
         print file_name
         #print data_points
 
+        im = Image.open('demo/' + file_name)
+        im.show()
+        ans = ''
         for i in range(len(data_points)):
             prediction = predict_char(data_points[i], label_list, w_lists)
+            time.sleep(0.7)
             print 'the prediction for character ' + str(i + 1) + ':'
             print prediction
+            ans += prediction
+        print 'captcha answer:'
+        print ans
+        print ''
+        time.sleep(2.3)
         
-        time.sleep(2)
     return
 
 # mapping function probility -> 1 / ( 1 - e^-score(x))
@@ -548,20 +557,20 @@ def demo_run():
 
 #remove_noise('captcha/captcha')
 #gather_data_points('captcha/class')
-label = '8'
-data_points, true_label_num = read_data_points('data_points', label)
-print 'number of data points read:'
-print len(data_points)
-print 'number of true labeled data:'
-print true_label_num
-print 'label'
-print label
-print ''
 
 # read all data from the file
 mode = input('Choose the task: \n(1) initial run using all data set \n(2) validation runs with randomly selected training data \n(3) demo runs to classfy the character images at given location \n')
 
 if mode == 1:
+    label = '8'
+    data_points, true_label_num = read_data_points('data_points', label)
+    print 'number of data points read:'
+    print len(data_points)
+    print 'number of true labeled data:'
+    print true_label_num
+    print 'label'
+    print label
+    print ''
     w_list, acc, true_positives = initial_run(data_points, true_label_num)
     save_w_list(w_list, acc, true_positives, true_label_num, label)
 elif mode == 2:
