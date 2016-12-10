@@ -113,7 +113,7 @@ def remove_noise(folder_name):
                     if count <= 4:
                         im.putpixel((j, i), 255)
                 
-
+        im.save(new_folder + '/' + file_name.replace('.png', '-converted.png'), 'PNG')
         remove_twist(im)
         im.save(new_folder + '/' + file_name, 'PNG')
         histogram = []
@@ -130,11 +130,15 @@ def remove_noise(folder_name):
         for i in range(len(histogram)):
             if histogram[i] < 2:
                 if start != None:
-                    end = i
-                    cut_into_chars(chars_path, file_name, index, im, start, end)
-                    index += 1
-                    start = None
-                    end = None
+                    if start > i - 5:
+                        start = None
+                        end = None
+                    else:
+                        end = i
+                        cut_into_chars(chars_path, file_name, index, im, start, end)
+                        index += 1
+                        start = None
+                        end = None
                 continue
             if start == None:
                 start = i
@@ -295,10 +299,11 @@ def is_stop_condition(target, total_der_w):
 def initial_run(data_points, true_label_num):
     # start point of w list on the initial run is set to 0
     global label
-    w_list = [0] * len(data_points[0])
+    #w_list = [0] * len(data_points[0])
+    w_list = [-15.963025118780287, -0.43443306421359246, -0.2130816713517045, 0.2661593995822441, -0.3458523008504041, -0.044444428302242586, -0.38460169241469555, 0.06696567077124346, -0.3389157769931296, 0.06488778637005507, -0.2884433624702576, 0.005643648699704118, -0.18185358337350155, 0.0, -1.0766209985348962, -0.8388338464905063, -0.9736253745468849, -0.43311952748442056, -0.7152603533572346, 0.5643120222952279, -0.3084306459554702, 0.0335196800463736, 1.1599045678462145, -0.46541566850488003, 0.4936350150215187, 0.029916234666661136, 0.012529865051112334, 0.601140042105911, 0.36051033433358276, 0.002815898142792036, 0.1906461211458586, 0.19764013233636568, 0.34393284315571343, 0.05289626054299256, 0.4832740976149765, 0.25859763190210105, 0.37455000400034677, 0.045043064922478844, 0.46016640167970996, 0.3176113125076553, 0.40151148514356577, -0.20026838352535525, 0.247977736811297, 0.1964791121660478, 0.04204464732364334, -0.0411748900563955, 0.01306243826020167, -0.2776242179863887, -2.0304833125567816, 2.0962095693258576, -1.556820308022205, 0.8224776725320135, 0.9816331075761761, 0.8011077860757811, -2.884869372284769, -0.5745464983045773, -0.6290523426230437, -1.1208591952796916, -0.6081835214150916, -0.12962313118443136, 2.585112363479023, 0.26914262463503075, -1.4025578590793883]
     # step can not go over 0.00005
     #step = 0.00003
-    step = 0.00005
+    step = 0.000035
 
     print 'performing Gradient Decent Algorithms ... '
     count = 0
@@ -476,6 +481,8 @@ def load_w_list(label):
 
 def demo_run():
 
+    remove_noise('demo')
+
     return
 
 # mapping function probility -> 1 / ( 1 - e^-score(x))
@@ -483,7 +490,7 @@ def demo_run():
 
 #remove_noise('captcha/captcha')
 #gather_data_points('captcha/class')
-label = '6'
+label = '8'
 data_points, true_label_num = read_data_points('data_points', label)
 print 'number of data points read:'
 print len(data_points)
